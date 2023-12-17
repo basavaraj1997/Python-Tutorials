@@ -6,4 +6,5 @@
 6. The extracted text is stored in a list (`text_content`).
 7. The main block specifies the document path, calls the extraction function, and prints the extracted text for each page.
 
-https://tech-code-rnd.blogspot.com/2023/12/exploring-python-unlocking-power-of.html
+ 
+https://rndcode.blogspot.com/2023/12/exploring-python-unlocking-power-of.html
