@@ -1,0 +1,2 @@
+PDF Text and Table Extraction
+This Python script extracts text and tables from a given PDF file using three different libraries: pdfplumber, tabula, and camelot. The script aims to differentiate between text inside and outside of tables, providing separate outputs for each.
