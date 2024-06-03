@@ -12,6 +12,7 @@ def extract_text_and_tables(pdf_path):
     text_inSequence=[]
 
     for page in pdf.pages:
+      text_inSequence.append('**************'+str(page.page_number)+'*********** \n \n')
       text_outside_tables = []            
       all_elements = page.extract_text(x0=0, y0=0, x1=page.width, y1=page.height)
       elements = all_elements.split("\n")      
@@ -28,15 +29,14 @@ def extract_text_and_tables(pdf_path):
 
       tables = read_pdf(pdf_path,pages=page.page_number,multiple_tables=True,**kwargs)
       print('tables: ',len(tables))
-      print(tables)
-      extracted_tables = pd.concat(tables, ignore_index=True).map(str)
+      extracted_tables = [] if len(tables) == 0 else pd.concat(tables, ignore_index=True).map(str)
 
       text_outside_tables = []
       is_last_row=False
       for element in elements:
         found = False
 
-        if is_last_row:
+        if is_last_row or len(tables) == 0:
            text_inSequence.append(element.strip())
            continue
            
@@ -64,10 +64,13 @@ def extract_text_and_tables(pdf_path):
 
             
   return text_inSequence
-  
-text_inSequence = extract_text_and_tables("5.pdf")
+file_path="15.pdf"
+text_inSequence = extract_text_and_tables(file_path)
 
 print("\nExtracted Text, tables:")
 for text_table in text_inSequence:
   print(text_table)
  
+with open(file_path.split('.')[0]+'.txt', 'w') as file:
+   for text_table in text_inSequence:
+      file.write(text_table)
