@@ -1,1 +1,86 @@
 https://medium.com/@hussainshahbazkhawaja/paper-implementation-header-and-footer-extraction-by-page-association-3a499b2552ae
+
+import re
+header_candidates = []
+footer_candidates = []
+pdf = pdfplumber.open("H_F-test1.pdf")    
+for page in pdf.pages:
+    header_candidates.append([line['text'] for line in page.extract_text_lines()[:1]])
+    footer_candidates.append([line['text'] for line in page.extract_text_lines()[-1:]])
+
+
+WIN=3
+def compare(a, b):
+    '''Fuzzy matching of strings to compare headers/footers in neighboring pages'''
+    
+    count = 0
+    a = re.sub('\d', '@', a)
+    b = re.sub('\d', '@', b)
+    for x, y in zip(a, b):
+        if x == y:
+            count += 1
+    if count==0:
+        return 0
+    return count / max(len(a), len(b))
+
+def remove_header(header_candidates):
+    '''Remove headers from content dictionary. Helper function for remove_header_footer() function.'''
+    
+    header_weights = [1.0, 0.75, 0.5, 0.5, 0.5]
+    
+    for i, candidate in enumerate(header_candidates):
+        temp = header_candidates[max(i-WIN, 1) : min(i+WIN, len(header_candidates))]
+        maxlen = len(max(temp, key=len))
+        for sublist in temp:
+            sublist[:] =  sublist + [''] * (maxlen - len(sublist))
+        detected = []
+        for j, cn in enumerate(candidate):
+            score = 0
+            try:
+                cmp = list(list(zip(*temp))[j])
+                for cm in cmp:
+                    score += compare(cn,cm) * header_weights[j]
+                score = score/len(cmp)
+            except:
+                score = header_weights[j]
+            if score > 0.5:
+                detected.append(cn)
+        del temp
+                
+    return detected
+
+def remove_footer(footer_candidates):
+    '''Remove footers from content dictionary. Helper function for remove_header_footer() function.'''
+    
+    footer_weights = [0.5, 0.5, 0.5, 0.75, 1.0]
+    detected = []
+    for i, candidate in enumerate(footer_candidates):
+        temp = footer_candidates[max(i-WIN, 1) : min(i+WIN, len(footer_candidates))]
+        maxlen = len(max(temp, key=len))
+        for sublist in temp:
+            sublist[:] =  [''] * (maxlen - len(sublist)) + sublist
+        
+        for j, cn in enumerate(candidate):
+            score = 0
+            try:
+                cmp = list(list(zip(*temp))[j])
+                for cm in cmp:
+                    score += compare(cn,cm)
+                score = score/len(cmp)
+            except:
+                score = footer_weights[j]
+            if score > 0.5:
+                detected.append(cn)
+        del temp
+        
+        # for d in detected:
+        #     while d in pages[i][-5:]:
+        #         pages[i] = pages[i][::-1]
+        #         pages[i].remove(d)
+        #         pages[i] = pages[i][::-1]
+                
+    return detected
+
+#header = remove_header(header_candidates)
+# fotter = remove_footer(footer_candidates)
+# fotter
